@@ -77,41 +77,45 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'Current player:',
+        child: ListView(
+          children: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                const Text(
+                  'Current player:',
+                ),
+                Text(
+                  'player$_counter',
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+                const Text(
+                  'Player data:',
+                ),
+                FutureBuilder(
+                  future: fetchMockData(),
+                  builder: (context, snapshot) {
+                    var isPending = snapshot.connectionState == ConnectionState.waiting;
+            
+                    if (isPending) {
+                      return const CircularProgressIndicator();
+                    }
+            
+                    if (snapshot.hasData) {
+                      return Text(snapshot.data);
+                    }
+                    
+                    if (snapshot.hasError) {
+                      return Text('${snapshot.error}');
+                    }
+            
+                    // By default, show a loading spinner.
+                    return const CircularProgressIndicator();
+                  },
+                )
+              ],
             ),
-            Text(
-              'player$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            const Text(
-              'Player data:',
-            ),
-            FutureBuilder(
-              future: fetchMockData(),
-              builder: (context, snapshot) {
-                var isPending = snapshot.connectionState == ConnectionState.waiting;
-
-                if (isPending) {
-                  return const CircularProgressIndicator();
-                }
-
-                if (snapshot.hasData) {
-                  return Text(snapshot.data);
-                }
-                
-                if (snapshot.hasError) {
-                  return Text('${snapshot.error}');
-                }
-
-                // By default, show a loading spinner.
-                return const CircularProgressIndicator();
-              },
-            )
-          ],
+          ]
         ),
       ),
       floatingActionButton: FloatingActionButton(
