@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,14 +13,27 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Hypix',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+    return ChangeNotifierProvider(
+      create: (context) => MyAppState(),
+      child: MaterialApp(
+        title: 'Hypix',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          useMaterial3: true,
+        ),
+        home: const MyHomePage(title: 'Hypix'),
       ),
-      home: const MyHomePage(title: 'Hypix'),
     );
+  }
+}
+
+class MyAppState extends ChangeNotifier {
+  String nickname = '';
+
+  void setNickname(playerName) {
+    nickname = playerName;
+
+    notifyListeners();
   }
 }
 
@@ -40,10 +54,10 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  Future fetchMockData() async {
+  Future fetchMockData(nickname) async {
     final mojangResponse = await http
       .get(
-        Uri.parse('https://api.mojang.com/users/profiles/minecraft/player$_counter'),
+        Uri.parse('https://api.mojang.com/users/profiles/minecraft/$nickname'),
       );
 
     final playerId = jsonDecode(mojangResponse.body)['id'];
@@ -71,6 +85,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
+  
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -82,18 +98,19 @@ class _MyHomePageState extends State<MyHomePage> {
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                const Text(
-                  'Current player:',
-                ),
                 Text(
-                  'player$_counter',
+                  'Current player ($_counter):',
+                ),
+                const SearchWidget(),
+                Text(
+                  appState.nickname,
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 const Text(
                   'Player data:',
                 ),
                 FutureBuilder(
-                  future: fetchMockData(),
+                  future: fetchMockData(appState.nickname),
                   builder: (context, snapshot) {
                     var isPending = snapshot.connectionState == ConnectionState.waiting;
             
@@ -122,6 +139,61 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: _incrementCounter,
         tooltip: 'Increment',
         child: const Icon(Icons.add),
+      ),
+    );
+  }
+}
+
+class SearchWidget extends StatefulWidget {
+  const SearchWidget({super.key});
+
+  @override
+  State<SearchWidget> createState() => _SearchWidgetState();
+}
+
+class _SearchWidgetState extends State<SearchWidget> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  String playerName = '';
+
+  @override
+  Widget build(BuildContext context) {  
+    var appState = context.watch<MyAppState>();
+
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          TextFormField(
+            decoration: const InputDecoration(
+              hintText: 'Enter player name',
+            ),
+            validator: (String? value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter some text';
+              }
+
+              setState(() {
+                playerName = value;
+              });
+
+              return null;
+            },
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16.0),
+            child: ElevatedButton(
+              onPressed: () {
+                // Validate will return true if the form is valid, or false if
+                // the form is invalid.
+                if (_formKey.currentState!.validate()) {
+                  appState.setNickname(playerName);
+                }
+              },
+              child: const Text('Submit'),
+            ),
+          ),
+        ],
       ),
     );
   }
