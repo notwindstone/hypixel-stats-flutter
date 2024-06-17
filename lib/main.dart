@@ -3,8 +3,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+Future main() async {
+  await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
 
@@ -68,7 +70,7 @@ class _MyHomePageState extends State<MyHomePage> {
         headers: {
           'Content-type': 'application/json',
           'Accept': 'application/json',
-          'API-Key': '196349f9-4013-412f-ab31-9b9f432cffc0'
+          'API-Key': dotenv.env['API_KEY'] ?? '',
         }
       );
 
