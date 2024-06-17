@@ -73,13 +73,9 @@ class _MyHomePageState extends State<MyHomePage> {
       );
 
     if (hypixelResponse.statusCode == 200) {
-      // If the server did return a 200 OK response,
-      // then parse the JSON.
       return hypixelResponse.body;
     } else {
-      // If the server did not return a 200 OK response,
-      // then throw an exception.
-      throw Exception('Failed to load album, ${hypixelResponse.body}');
+      throw Exception('Failed to load playerdata');
     }
   }
 
@@ -99,7 +95,7 @@ class _MyHomePageState extends State<MyHomePage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Text(
-                  'Current player ($_counter):',
+                  'Current player (refresh: #$_counter):',
                 ),
                 const SearchWidget(),
                 Text(
@@ -125,8 +121,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     if (snapshot.hasError) {
                       return Text('${snapshot.error}');
                     }
-            
-                    // By default, show a loading spinner.
+
                     return const CircularProgressIndicator();
                   },
                 )
@@ -138,7 +133,7 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: _incrementCounter,
         tooltip: 'Increment',
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.refresh),
       ),
     );
   }
@@ -184,8 +179,6 @@ class _SearchWidgetState extends State<SearchWidget> {
             padding: const EdgeInsets.symmetric(vertical: 16.0),
             child: ElevatedButton(
               onPressed: () {
-                // Validate will return true if the form is valid, or false if
-                // the form is invalid.
                 if (_formKey.currentState!.validate()) {
                   appState.setNickname(playerName);
                 }
