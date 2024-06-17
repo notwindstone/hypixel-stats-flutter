@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -39,17 +41,31 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future fetchMockData() async {
-    final response = await http
-      .get(Uri.parse('https://jsonplaceholder.typicode.com/albums/$_counter'));
+    final mojangResponse = await http
+      .get(
+        Uri.parse('https://api.mojang.com/users/profiles/minecraft/player$_counter'),
+      );
 
-    if (response.statusCode == 200) {
+    final playerId = jsonDecode(mojangResponse.body)['id'];
+
+    final hypixelResponse = await http
+      .get(
+        Uri.parse('https://api.hypixel.net/v2/player?uuid=$playerId'),
+        headers: {
+          'Content-type': 'application/json',
+          'Accept': 'application/json',
+          'API-Key': '196349f9-4013-412f-ab31-9b9f432cffc0'
+        }
+      );
+
+    if (hypixelResponse.statusCode == 200) {
       // If the server did return a 200 OK response,
       // then parse the JSON.
-      return response.body;
+      return hypixelResponse.body;
     } else {
       // If the server did not return a 200 OK response,
       // then throw an exception.
-      throw Exception('Failed to load album');
+      throw Exception('Failed to load album, ${hypixelResponse.body}');
     }
   }
 
@@ -65,18 +81,29 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             const Text(
-              'You have pushed the button this many times:',
+              'Current player:',
             ),
             Text(
-              '$_counter',
+              'player$_counter',
               style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            const Text(
+              'Player data:',
             ),
             FutureBuilder(
               future: fetchMockData(),
               builder: (context, snapshot) {
+                var isPending = snapshot.connectionState == ConnectionState.waiting;
+
+                if (isPending) {
+                  return const CircularProgressIndicator();
+                }
+
                 if (snapshot.hasData) {
                   return Text(snapshot.data);
-                } else if (snapshot.hasError) {
+                }
+                
+                if (snapshot.hasError) {
                   return Text('${snapshot.error}');
                 }
 
