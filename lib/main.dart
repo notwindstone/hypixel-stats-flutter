@@ -151,6 +151,19 @@ class SearchWidget extends StatefulWidget {
 class _SearchWidgetState extends State<SearchWidget> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   String playerName = '';
+  bool isTapped = false;
+
+  Future<void> toggleTapped() async {
+    setState(() {
+      isTapped = true;
+    });
+
+    await Future.delayed(const Duration(seconds: 1));
+
+    setState(() {
+      isTapped = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {  
@@ -180,12 +193,35 @@ class _SearchWidgetState extends State<SearchWidget> {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16.0),
             child: ElevatedButton(
+              style: ButtonStyle(
+                backgroundColor: WidgetStateProperty.resolveWith<Color?>(
+                  (Set<WidgetState> states) {
+                    if (isTapped) {
+                      return Theme.of(context).colorScheme.secondary.withOpacity(0.1);
+                    }
+
+                    return null;
+                  }
+                ),
+              ),
               onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  appState.setNickname(playerName);
+                if (!_formKey.currentState!.validate()) {
+                  return;
                 }
+
+                if (isTapped) {
+                  return;
+                }
+                  
+                toggleTapped();
+                appState.setNickname(playerName);
               },
-              child: const Text('Submit'),
+              child: Text(
+                'Submit', 
+                style: TextStyle(
+                  color: isTapped ? Theme.of(context).colorScheme.secondary : null,
+                )
+              ),
             ),
           ),
         ],
