@@ -48,11 +48,17 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  bool isTapped = false;
 
-  void _incrementCounter() {
+  Future<void> toggleTapped() async {
     setState(() {
-      _counter++;
+      isTapped = true;
+    });
+
+    await Future.delayed(const Duration(seconds: 1));
+
+    setState(() {
+      isTapped = false;
     });
   }
 
@@ -97,7 +103,7 @@ class _MyHomePageState extends State<MyHomePage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Text(
-                  'Current player (refresh: #$_counter):',
+                  'Current player:',
                 ),
                 const SearchWidget(),
                 Text(
@@ -111,7 +117,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   future: fetchMockData(appState.nickname),
                   builder: (context, snapshot) {
                     var isPending = snapshot.connectionState == ConnectionState.waiting;
-            
+
                     if (isPending) {
                       return const CircularProgressIndicator();
                     }
@@ -133,9 +139,13 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
+        onPressed: isTapped 
+          ? null
+          : () {
+            toggleTapped();
+          },
         tooltip: 'Increment',
-        child: const Icon(Icons.refresh),
+        child: const Icon(Icons.favorite_border),
       ),
     );
   }
@@ -193,34 +203,18 @@ class _SearchWidgetState extends State<SearchWidget> {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16.0),
             child: ElevatedButton(
-              style: ButtonStyle(
-                backgroundColor: WidgetStateProperty.resolveWith<Color?>(
-                  (Set<WidgetState> states) {
-                    if (isTapped) {
-                      return Theme.of(context).colorScheme.secondary.withOpacity(0.1);
-                    }
-
-                    return null;
+              onPressed: isTapped 
+                ? null
+                : () {
+                  if (!_formKey.currentState!.validate()) {
+                    return;
                   }
-                ),
-              ),
-              onPressed: () {
-                if (!_formKey.currentState!.validate()) {
-                  return;
-                }
-
-                if (isTapped) {
-                  return;
-                }
-                  
-                toggleTapped();
-                appState.setNickname(playerName);
-              },
+                    
+                  toggleTapped();
+                  appState.setNickname(playerName);
+                },
               child: Text(
-                'Submit', 
-                style: TextStyle(
-                  color: isTapped ? Theme.of(context).colorScheme.secondary : null,
-                )
+                'Submit',
               ),
             ),
           ),
